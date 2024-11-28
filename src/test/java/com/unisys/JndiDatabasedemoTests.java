@@ -9,7 +9,7 @@ class JndiDatabasedemoTests {
 	@Test
 	void contextLoads() {
 		//test cases here 
-		//it should be here
+		
 	}
 
 }
