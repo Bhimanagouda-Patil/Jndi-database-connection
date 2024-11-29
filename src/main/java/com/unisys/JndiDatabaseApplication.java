@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class JndiDatabasedemo {
+public class JndiDatabaseApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(JndiDatabasedemo.class, args);
+		SpringApplication.run(JndiDatabaseApplication.class, args);
 	}
 
 }
