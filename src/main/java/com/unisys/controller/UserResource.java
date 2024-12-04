@@ -9,6 +9,8 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.List;
 
+import org.springframework.stereotype.Component;
+
 /**
  * RESTful web service resource for managing users.
  * <p>
@@ -24,9 +26,14 @@ import java.util.List;
  * </p>
  */
 @Path("/users")
+@Component
 public class UserResource {
 
-    private final UserService userService = new UserService();
+	private UserService userService;
+
+	public UserResource(UserService userService) {
+        this.userService = userService;
+    }
     public static final String USER_NOT_FOUND_MESSAGE = "User not found";
 
     /**
