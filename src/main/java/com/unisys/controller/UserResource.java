@@ -115,7 +115,7 @@ public class UserResource {
     }
 
     /**
-     * Deletes a user by ID.
+     * Deletes the user by ID.
      * <p>
      * This method calls the {@link UserService#deleteUser(Long)} method to delete the user by ID.
      * If the deletion is successful, it returns a 200 (OK) response with a success message.
