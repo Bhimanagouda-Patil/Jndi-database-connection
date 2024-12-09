@@ -2,136 +2,112 @@ package com.unisys.controller;
 
 import com.unisys.model.User;
 import com.unisys.service.UserService;
-
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import java.util.List;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * RESTful web service resource for managing users.
- * <p>
- * This class provides the following endpoints:
- * <ul>
- *   <li>GET /users - Retrieves all users</li>
- *   <li>GET /users/{id} - Retrieves a user by ID</li>
- *   <li>POST /users - Creates a new user</li>
- *   <li>PUT /users/{id} - Updates an existing user by ID</li>
- *   <li>DELETE /users/{id} - Deletes a user by ID</li>
- * </ul>
- * Each endpoint interacts with the {@link UserService} to perform operations on the user data.
- * </p>
- */
 @Path("/users")
 @Component
 public class UserResource {
 
-	private UserService userService;
+    private static final Logger logger = LoggerFactory.getLogger(UserResource.class);
+    private final UserService userService;
 
-	public UserResource(UserService userService) {
+    private static final String USER_NOT_FOUND_MESSAGE = "User not found";
+    private static final String INTERNAL_SERVER_ERROR_MESSAGE = "An internal error occurred";
+    private static final String VALIDATION_ERROR_MESSAGE = "Validation error occurred: ";
+
+    public UserResource(UserService userService) {
+        if (userService == null) {
+            throw new IllegalArgumentException("UserService cannot be null");
+        }
         this.userService = userService;
     }
-    public static final String USER_NOT_FOUND_MESSAGE = "User not found";
 
-    /**
-     * Retrieves all users.
-     * <p>
-     * This method calls the {@link UserService#getAllUsers()} method to retrieve a list of all users.
-     * </p>
-     *
-     * @return a list of {@link User} objects in JSON format.
-     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public Response getAllUsers() {
+        try {
+            return Response.ok(userService.getAllUsers()).build();
+        } catch (Exception e) {
+            return handleInternalError(e);
+        }
     }
 
-    /**
-     * Retrieves a user by ID.
-     * <p>
-     * This method calls the {@link UserService#getUserById(Long)} method to retrieve a user by its ID.
-     * If the user is found, it returns a {@link Response} with status 200 (OK) and the user details.
-     * If the user is not found, it returns a 404 (Not Found) response with an error message.
-     * </p>
-     *
-     * @param id the ID of the user to be retrieved.
-     * @return a {@link Response} containing the user or an error message.
-     */
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUserById(@PathParam("id") Long id) {
-        User user = userService.getUserById(id);
-        if (user != null) {
-            return Response.ok(user).build();
+    public Response getUserById(@PathParam("id") @NotNull Long id) {
+        try {
+            User user = userService.getUserById(id);
+            if (user != null) {
+                return Response.ok(user).build();
+            }
+            return Response.status(Response.Status.NOT_FOUND).entity(USER_NOT_FOUND_MESSAGE).build();
+        } catch (Exception e) {
+            return handleInternalError(e);
         }
-        return Response.status(Response.Status.NOT_FOUND).entity(USER_NOT_FOUND_MESSAGE).build();
     }
 
-    /**
-     * Creates a new user.
-     * <p>
-     * This method accepts a {@link User} object in JSON format, calls the {@link UserService#createUser(User)}
-     * method to create the user, and returns a 201 (Created) response with the result.
-     * </p>
-     *
-     * @param user the user object to be created.
-     * @return a {@link Response} with the creation status.
-     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createUser(User user) {
-        String result = userService.createUser(user);
-        return Response.status(Response.Status.CREATED).entity(result).build();
+    public Response createUser(@Valid User user) {
+        if (user.getUsername() == null || user.getEmail() == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Username and email are required.")
+                    .build();
+        }
+        try {
+            String result = userService.createUser(user);
+            return Response.status(Response.Status.CREATED).entity(result).build();
+        } catch (IllegalArgumentException e) {
+            logger.error(VALIDATION_ERROR_MESSAGE, e.getMessage());
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (Exception e) {
+            return handleInternalError(e);
+        }
     }
 
-    /**
-     * Updates an existing user by ID.
-     * <p>
-     * This method calls the {@link UserService#updateUser(Long, User)} method to update the user details.
-     * If the update is successful, it returns a 200 (OK) response with a success message.
-     * If the user is not found, it returns a 404 (Not Found) response with an error message.
-     * </p>
-     *
-     * @param id   the ID of the user to be updated.
-     * @param user the updated user object.
-     * @return a {@link Response} with the update status.
-     */
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateUser(@PathParam("id") Long id, User user) {
-        boolean updated = userService.updateUser(id, user);
-        if (updated) {
-            return Response.ok("User updated successfully").build();
+    public Response updateUser(@PathParam("id") @NotNull Long id, @Valid User user) {
+        try {
+            boolean updated = userService.updateUser(id, user);
+            if (updated) {
+                return Response.ok("User updated successfully").build();
+            }
+            return Response.status(Response.Status.NOT_FOUND).entity(USER_NOT_FOUND_MESSAGE).build();
+        } catch (Exception e) {
+            return handleInternalError(e);
         }
-        return Response.status(Response.Status.NOT_FOUND).entity(USER_NOT_FOUND_MESSAGE).build();
     }
 
-    /**
-     * Deletes the user by ID.
-     * <p>
-     * This method calls the {@link UserService#deleteUser(Long)} method to delete the user by ID.
-     * If the deletion is successful, it returns a 200 (OK) response with a success message.
-     * If the user is not found, it returns a 404 (Not Found) response with an error message.
-     * </p>
-     *
-     * @param id the ID of the user to be deleted.
-     * @return a {@link Response} with the deletion status.
-     */
     @DELETE
     @Path("/{id}")
-    public Response deleteUser(@PathParam("id") Long id) {
-        boolean deleted = userService.deleteUser(id);
-        if (deleted) {
-            return Response.ok("User deleted successfully").build();
+    public Response deleteUser(@PathParam("id") @NotNull Long id) {
+        try {
+            boolean deleted = userService.deleteUser(id);
+            if (deleted) {
+                return Response.ok("User deleted successfully").build();
+            }
+            return Response.status(Response.Status.NOT_FOUND).entity(USER_NOT_FOUND_MESSAGE).build();
+        } catch (Exception e) {
+            return handleInternalError(e);
         }
-        return Response.status(Response.Status.NOT_FOUND).entity(USER_NOT_FOUND_MESSAGE).build();
+    }
+
+    private Response handleInternalError(Exception e) {
+        logger.error("Unhandled error: {}", e.getMessage(), e);
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(INTERNAL_SERVER_ERROR_MESSAGE)
+                .build();
     }
 }

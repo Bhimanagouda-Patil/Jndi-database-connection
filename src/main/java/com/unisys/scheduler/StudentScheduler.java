@@ -21,7 +21,7 @@ public class StudentScheduler {
     @Autowired
     private EmailService emailService; // Service for sending emails
 
-    private static final int STUDENT_THRESHOLD = 7;
+    private static final int STUDENT_THRESHOLD = 15;
     /**
      * Task 1: Log the number of students every minute.
      */

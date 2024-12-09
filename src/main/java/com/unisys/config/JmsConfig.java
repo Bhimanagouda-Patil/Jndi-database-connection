@@ -15,7 +15,7 @@ import jakarta.jms.ConnectionFactory;
 public class JmsConfig {
 
     @Bean
-    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory(
+    DefaultJmsListenerContainerFactory jmsListenerContainerFactory(
             ConnectionFactory connectionFactory) {
 
         DefaultJmsListenerContainerFactory factory
