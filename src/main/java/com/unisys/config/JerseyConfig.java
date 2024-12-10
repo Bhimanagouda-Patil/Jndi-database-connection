@@ -16,5 +16,6 @@ public class JerseyConfig extends ResourceConfig {
         register(UserResource.class); // Register Jersey REST Controller
         register(JndiTestController.class);
         register(MessagePublisher.class);
+        register(SecurityExceptionMapper.class);
     }
 }
