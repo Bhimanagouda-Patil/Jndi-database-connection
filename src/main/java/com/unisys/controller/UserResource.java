@@ -61,7 +61,7 @@ public class UserResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @RequiresAccessControl(role = "ADMIN")  // This triggers the security aspect
+   @RequiresAccessControl(role = "ADMIN")  // This triggers the security aspect
     public Response createUser(@Valid User user) {
         if (user.getUsername() == null || user.getEmail() == null) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -99,7 +99,7 @@ public class UserResource {
 
     @DELETE
     @Path("/{id}")
-    @RequiresAccessControl(role = "ADMIN")  // This triggers the security aspect
+  @RequiresAccessControl(role = "ADMIN")  // This triggers the security aspect
     public Response deleteUser(@PathParam("id") @NotNull Long id) {
         try {
             boolean deleted = userService.deleteUser(id);

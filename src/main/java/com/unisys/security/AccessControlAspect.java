@@ -1,3 +1,4 @@
+
 package com.unisys.security;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -22,13 +23,13 @@ public class AccessControlAspect {
         String currentUserRole = getCurrentUserRole();
 
         // Check if the user role matches the required role
-        if (!currentUserRole.equals(requiredRole)) {
+        if (!currentUserRole.equalsIgnoreCase(requiredRole)) {
             logger.warn("Access denied. User role '{}' does not have permission to perform this action. Required role: '{}'",
                     currentUserRole, requiredRole);
-            throw new SecurityException("Access denied! Only users with " + requiredRole + " role can perform this action.");
+            throw new SecurityException("Access denied! Only users with the role '" + requiredRole + "' can perform this action.");
         }
 
-        // If roles match, proceed with the method execution
+        // Proceed with the method execution if roles match
         return joinPoint.proceed();
     }
 
@@ -36,6 +37,12 @@ public class AccessControlAspect {
     private String getCurrentUserRole() {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         String role = request.getHeader("X-Role");
-        return (role != null && !role.isEmpty()) ? role : "USER"; // Default to "USER" if no role header is found
+        if (role == null || role.isEmpty()) {
+            logger.warn("Missing or empty X-Role header. Defaulting to 'USER'.");
+            return "USER"; // Default to "USER" if no role is specified
+        }
+        logger.info("Retrieved role from X-Role header: {}", role);
+        return role;
     }
 }
+

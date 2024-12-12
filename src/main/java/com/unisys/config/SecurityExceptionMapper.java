@@ -14,4 +14,6 @@ public class SecurityExceptionMapper implements ExceptionMapper<SecurityExceptio
                        .entity(exception.getMessage())  // Custom message from SecurityException
                        .build();
     }
+  
+
 }

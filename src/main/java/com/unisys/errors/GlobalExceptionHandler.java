@@ -32,6 +32,10 @@ public class GlobalExceptionHandler {
         logger.error("Response status exception: {}", ex.getMessage());
         return new ResponseEntity<>(ex.getReason(), ex.getStatusCode());
     }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleInvalidRequest(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body("Invalid request: " + ex.getMessage());
+    }
 
  
 }
